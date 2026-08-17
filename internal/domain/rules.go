@@ -1,7 +1,6 @@
 package domain
 
 import (
-	"fmt"
 	"strings"
 	"time"
 )
@@ -9,9 +8,6 @@ import (
 func ValidateCreateInput(input CreateWorkOrderInput) error {
 	if strings.TrimSpace(input.AssetID) == "" || strings.TrimSpace(input.Title) == "" {
 		return ErrInvalidWorkOrder
-	}
-	if input.Priority != "low" && input.Priority != "normal" && input.Priority != "urgent" {
-		return fmt.Errorf("%w: %s", ErrUnsupportedPriority, input.Priority)
 	}
 	return nil
 }

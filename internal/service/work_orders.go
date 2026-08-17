@@ -27,10 +27,6 @@ func (s *WorkOrderService) ListAssets(ctx context.Context) ([]domain.Asset, erro
 }
 
 func (s *WorkOrderService) Create(ctx context.Context, input domain.CreateWorkOrderInput) (domain.WorkOrder, error) {
-	if err := domain.ValidateCreateInput(input); err != nil {
-		return domain.WorkOrder{}, err
-	}
-
 	asset, found, err := s.repository.GetAsset(ctx, input.AssetID)
 	if err != nil {
 		return domain.WorkOrder{}, err

@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"errors"
 	"testing"
 	"time"
 )
@@ -34,5 +35,14 @@ func TestAssignThenComplete(t *testing.T) {
 	}
 	if order.Status != StatusCompleted || order.ClosedAt == nil {
 		t.Fatalf("completed order = %#v", order)
+	}
+}
+
+func TestValidateCreateInputRejectsUnsupportedPriority(t *testing.T) {
+	err := ValidateCreateInput(CreateWorkOrderInput{
+		AssetID: "FAN-01", Title: "Inspect belt", Priority: "immediate",
+	})
+	if !errors.Is(err, ErrUnsupportedPriority) {
+		t.Fatalf("ValidateCreateInput() error = %v, want unsupported priority", err)
 	}
 }
