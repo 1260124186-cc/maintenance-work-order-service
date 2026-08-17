@@ -35,7 +35,7 @@ func (s *WorkOrderService) Create(ctx context.Context, input domain.CreateWorkOr
 	if err != nil {
 		return domain.WorkOrder{}, err
 	}
-	if !found {
+	if !found || asset == nil {
 		return domain.WorkOrder{}, domain.ErrAssetNotFound
 	}
 	if !asset.Active {

@@ -49,7 +49,7 @@ func (m *MemoryRepository) GetAsset(ctx context.Context, id string) (*domain.Ass
 
 	asset, found := m.assets[id]
 	if !found {
-		return nil, true, nil
+		return nil, false, nil
 	}
 	copy := copyAsset(asset)
 	return &copy, true, nil
