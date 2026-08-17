@@ -41,6 +41,26 @@ func TestCreateRejectsInactiveAsset(t *testing.T) {
 	}
 }
 
+func TestCreateRejectsMissingAssetWithoutSavingWorkOrder(t *testing.T) {
+	repository := store.NewMemoryRepository()
+	operations := service.NewWorkOrderService(repository)
+
+	_, err := operations.Create(context.Background(), domain.CreateWorkOrderInput{
+		AssetID: "NOPE", Title: "Inspect belt", Priority: "normal",
+	})
+	if !errors.Is(err, domain.ErrAssetNotFound) {
+		t.Fatalf("Create() error = %v, want missing asset error", err)
+	}
+
+	orders, err := repository.ListWorkOrders(context.Background())
+	if err != nil {
+		t.Fatalf("ListWorkOrders() error = %v", err)
+	}
+	if len(orders) != 0 {
+		t.Fatalf("saved work orders = %#v, want none", orders)
+	}
+}
+
 func TestCreateRejectsNilAssetFromRepository(t *testing.T) {
 	operations := service.NewWorkOrderService(&nilAssetRepository{})
 	_, err := operations.Create(context.Background(), domain.CreateWorkOrderInput{

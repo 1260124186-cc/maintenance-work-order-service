@@ -47,11 +47,23 @@ func TestHealthAndWorkOrderLifecycle(t *testing.T) {
 }
 
 func TestUnknownAssetReturnsNotFound(t *testing.T) {
-	server := NewServer(store.NewMemoryRepository())
+	repository := store.NewMemoryRepository()
+	server := NewServer(repository)
 	recorder := httptest.NewRecorder()
 	server.ServeHTTP(recorder, httptest.NewRequest(http.MethodPost, "/work-orders",
 		bytes.NewBufferString(`{"asset_id":"NOPE","title":"Inspect","priority":"normal"}`)))
 	if recorder.Code != http.StatusNotFound {
 		t.Fatalf("status = %d, body = %s", recorder.Code, recorder.Body.String())
+	}
+	if recorder.Body.String() != "{\"error\":\"asset not found\"}\n" {
+		t.Fatalf("response body = %s", recorder.Body.String())
+	}
+
+	orders, err := repository.ListWorkOrders(t.Context())
+	if err != nil {
+		t.Fatalf("ListWorkOrders() error = %v", err)
+	}
+	if len(orders) != 0 {
+		t.Fatalf("saved work orders = %#v, want none", orders)
 	}
 }
