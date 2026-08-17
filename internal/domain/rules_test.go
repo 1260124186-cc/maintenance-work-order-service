@@ -46,3 +46,16 @@ func TestValidateCreateInputRejectsUnsupportedPriority(t *testing.T) {
 		t.Fatalf("ValidateCreateInput() error = %v, want unsupported priority", err)
 	}
 }
+
+func TestValidateCreateInputAcceptsSupportedPriorities(t *testing.T) {
+	for _, priority := range []string{"low", "normal", "urgent"} {
+		t.Run(priority, func(t *testing.T) {
+			err := ValidateCreateInput(CreateWorkOrderInput{
+				AssetID: "FAN-01", Title: "Inspect belt", Priority: priority,
+			})
+			if err != nil {
+				t.Fatalf("ValidateCreateInput() error = %v", err)
+			}
+		})
+	}
+}

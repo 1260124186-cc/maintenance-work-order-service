@@ -87,10 +87,14 @@ func TestCreateRejectsInvalidPriorityBeforeLookingUpAsset(t *testing.T) {
 	if repository.lookups != 0 {
 		t.Fatalf("GetAsset() calls = %d, want 0", repository.lookups)
 	}
+	if repository.saves != 0 {
+		t.Fatalf("SaveWorkOrder() calls = %d, want 0", repository.saves)
+	}
 }
 
 type lookupTrackingRepository struct {
 	lookups int
+	saves   int
 }
 
 func (r *lookupTrackingRepository) ListAssets(context.Context) ([]domain.Asset, error) {
@@ -100,7 +104,10 @@ func (r *lookupTrackingRepository) GetAsset(context.Context, string) (*domain.As
 	r.lookups++
 	return nil, false, nil
 }
-func (r *lookupTrackingRepository) SaveWorkOrder(context.Context, domain.WorkOrder) error { return nil }
+func (r *lookupTrackingRepository) SaveWorkOrder(context.Context, domain.WorkOrder) error {
+	r.saves++
+	return nil
+}
 func (r *lookupTrackingRepository) GetWorkOrder(context.Context, string) (*domain.WorkOrder, bool, error) {
 	return nil, false, nil
 }

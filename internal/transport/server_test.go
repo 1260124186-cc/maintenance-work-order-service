@@ -55,3 +55,23 @@ func TestUnknownAssetReturnsNotFound(t *testing.T) {
 		t.Fatalf("status = %d, body = %s", recorder.Code, recorder.Body.String())
 	}
 }
+
+func TestUnsupportedPriorityReturnsBadRequest(t *testing.T) {
+	server := NewServer(store.NewMemoryRepository())
+	recorder := httptest.NewRecorder()
+	server.ServeHTTP(recorder, httptest.NewRequest(http.MethodPost, "/work-orders",
+		bytes.NewBufferString(`{"asset_id":"FAN-01","title":"Inspect","priority":"immediate"}`)))
+	if recorder.Code != http.StatusBadRequest {
+		t.Fatalf("status = %d, body = %s", recorder.Code, recorder.Body.String())
+	}
+
+	var response struct {
+		Error string `json:"error"`
+	}
+	if err := json.NewDecoder(recorder.Body).Decode(&response); err != nil {
+		t.Fatalf("decode error response: %v", err)
+	}
+	if response.Error != "unsupported priority" {
+		t.Fatalf("error = %q, want unsupported priority", response.Error)
+	}
+}

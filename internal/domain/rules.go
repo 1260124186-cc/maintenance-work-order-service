@@ -9,7 +9,12 @@ func ValidateCreateInput(input CreateWorkOrderInput) error {
 	if strings.TrimSpace(input.AssetID) == "" || strings.TrimSpace(input.Title) == "" {
 		return ErrInvalidWorkOrder
 	}
-	return nil
+	switch input.Priority {
+	case "low", "normal", "urgent":
+		return nil
+	default:
+		return ErrUnsupportedPriority
+	}
 }
 
 func NewWorkOrder(id string, input CreateWorkOrderInput, createdAt time.Time) (WorkOrder, error) {
