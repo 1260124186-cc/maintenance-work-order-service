@@ -58,6 +58,9 @@ func (m *MemoryRepository) GetAsset(ctx context.Context, id string) (*domain.Ass
 func (m *MemoryRepository) SaveWorkOrder(ctx context.Context, order domain.WorkOrder) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 	m.orders[order.ID] = copyOrder(order)
 	return nil
 }
@@ -78,11 +81,11 @@ func (m *MemoryRepository) GetWorkOrder(ctx context.Context, id string) (*domain
 }
 
 func (m *MemoryRepository) UpdateWorkOrder(ctx context.Context, order domain.WorkOrder) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	m.mu.Lock()
-	defer m.mu.Unlock()
 	if _, found := m.orders[order.ID]; !found {
 		return domain.ErrWorkOrderNotFound
 	}

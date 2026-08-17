@@ -64,6 +64,9 @@ func TestCreateHonorsCanceledContext(t *testing.T) {
 	if !errors.Is(err, requestContext.Err()) {
 		t.Fatalf("Create() error = %v, want canceled context", err)
 	}
+	if repository.saveCalls != 0 {
+		t.Fatalf("canceled Create() called SaveWorkOrder() %d times, want 0", repository.saveCalls)
+	}
 	orders, listErr := repository.ListWorkOrders(context.Background())
 	if listErr != nil {
 		t.Fatalf("ListWorkOrders() error = %v", listErr)
@@ -125,11 +128,17 @@ func (r *lookupTrackingRepository) OpenAudit(context.Context) (domain.AuditCurso
 
 type cancelOnLookupRepository struct {
 	*store.MemoryRepository
-	cancel context.CancelFunc
+	cancel    context.CancelFunc
+	saveCalls int
 }
 
 func (r *cancelOnLookupRepository) GetAsset(ctx context.Context, id string) (*domain.Asset, bool, error) {
 	asset, found, err := r.MemoryRepository.GetAsset(ctx, id)
 	r.cancel()
 	return asset, found, err
+}
+
+func (r *cancelOnLookupRepository) SaveWorkOrder(ctx context.Context, order domain.WorkOrder) error {
+	r.saveCalls++
+	return r.MemoryRepository.SaveWorkOrder(ctx, order)
 }

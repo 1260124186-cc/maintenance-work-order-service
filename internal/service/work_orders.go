@@ -41,13 +41,16 @@ func (s *WorkOrderService) Create(ctx context.Context, input domain.CreateWorkOr
 	if !asset.Active {
 		return domain.WorkOrder{}, domain.ErrAssetUnavailable
 	}
+	if err := ctx.Err(); err != nil {
+		return domain.WorkOrder{}, err
+	}
 
 	id := fmt.Sprintf("WO-%04d", s.nextID.Add(1))
 	order, err := domain.NewWorkOrder(id, input, s.now())
 	if err != nil {
 		return domain.WorkOrder{}, err
 	}
-	if err := s.repository.SaveWorkOrder(context.Background(), order); err != nil {
+	if err := s.repository.SaveWorkOrder(ctx, order); err != nil {
 		return domain.WorkOrder{}, err
 	}
 	return order, nil
