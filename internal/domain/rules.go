@@ -5,9 +5,24 @@ import (
 	"time"
 )
 
+// supportedPriorities 是设施协调员可选择的工单优先级
+var supportedPriorities = map[string]struct{}{
+	"low":    {},
+	"normal": {},
+	"urgent": {},
+}
+
+func isSupportedPriority(priority string) bool {
+	_, ok := supportedPriorities[priority]
+	return ok
+}
+
 func ValidateCreateInput(input CreateWorkOrderInput) error {
 	if strings.TrimSpace(input.AssetID) == "" || strings.TrimSpace(input.Title) == "" {
 		return ErrInvalidWorkOrder
+	}
+	if !isSupportedPriority(input.Priority) {
+		return ErrUnsupportedPriority
 	}
 	return nil
 }
