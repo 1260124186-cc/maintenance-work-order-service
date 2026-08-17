@@ -3,6 +3,7 @@ package transport
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -53,5 +54,25 @@ func TestUnknownAssetReturnsNotFound(t *testing.T) {
 		bytes.NewBufferString(`{"asset_id":"NOPE","title":"Inspect","priority":"normal"}`)))
 	if recorder.Code != http.StatusNotFound {
 		t.Fatalf("status = %d, body = %s", recorder.Code, recorder.Body.String())
+	}
+}
+
+func TestDailySummaryReturnsAuditCloseError(t *testing.T) {
+	repository := store.NewMemoryRepository()
+	repository.SetNextAuditCloseError(errors.New("audit close failed"))
+	server := NewServer(repository)
+	recorder := httptest.NewRecorder()
+
+	server.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/summary?date=2026-08-17", nil))
+
+	if recorder.Code != http.StatusInternalServerError {
+		t.Fatalf("status = %d, body = %s", recorder.Code, recorder.Body.String())
+	}
+	var response map[string]string
+	if err := json.NewDecoder(recorder.Body).Decode(&response); err != nil {
+		t.Fatalf("decode error response: %v", err)
+	}
+	if response["error"] != "audit close failed" {
+		t.Fatalf("error response = %#v", response)
 	}
 }

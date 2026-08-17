@@ -78,6 +78,48 @@ func TestDailySummaryCompletesWithoutWorkOrders(t *testing.T) {
 	}
 }
 
+func TestDailySummaryCountsWorkOrderStatuses(t *testing.T) {
+	operations := service.NewWorkOrderService(store.NewMemoryRepository())
+	open, err := operations.Create(context.Background(), domain.CreateWorkOrderInput{
+		AssetID: "FAN-01", Title: "Inspect belt", Priority: "normal",
+	})
+	if err != nil {
+		t.Fatalf("Create() open order error = %v", err)
+	}
+	assigned, err := operations.Create(context.Background(), domain.CreateWorkOrderInput{
+		AssetID: "PUMP-02", Title: "Inspect pump", Priority: "urgent",
+	})
+	if err != nil {
+		t.Fatalf("Create() assigned order error = %v", err)
+	}
+	if _, err := operations.Assign(context.Background(), assigned.ID, "Jordan"); err != nil {
+		t.Fatalf("Assign() error = %v", err)
+	}
+	completed, err := operations.Create(context.Background(), domain.CreateWorkOrderInput{
+		AssetID: "FAN-01", Title: "Replace filter", Priority: "low",
+	})
+	if err != nil {
+		t.Fatalf("Create() completed order error = %v", err)
+	}
+	if _, err := operations.Assign(context.Background(), completed.ID, "Casey"); err != nil {
+		t.Fatalf("Assign() completed order error = %v", err)
+	}
+	if _, err := operations.Complete(context.Background(), completed.ID); err != nil {
+		t.Fatalf("Complete() error = %v", err)
+	}
+
+	summary, err := operations.DailySummary(context.Background(), "2026-08-17")
+	if err != nil {
+		t.Fatalf("DailySummary() error = %v", err)
+	}
+	if summary.Open != 1 || summary.Assigned != 1 || summary.Completed != 1 {
+		t.Fatalf("DailySummary() = %#v, want one order in each status", summary)
+	}
+	if open.ID == "" {
+		t.Fatal("Create() returned empty open order ID")
+	}
+}
+
 func TestCreateRejectsInvalidPriorityBeforeLookingUpAsset(t *testing.T) {
 	repository := &lookupTrackingRepository{}
 	operations := service.NewWorkOrderService(repository)

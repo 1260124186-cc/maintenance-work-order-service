@@ -11,10 +11,10 @@ func (s *WorkOrderService) DailySummary(ctx context.Context, date string) (domai
 	if err != nil {
 		return domain.DailySummary{}, err
 	}
-	orders := cursor.WorkOrders()
-	if len(orders) == 0 {
-		return domain.Summarize(date, orders), nil
+
+	summary := domain.Summarize(date, cursor.WorkOrders())
+	if err := cursor.Close(); err != nil {
+		return domain.DailySummary{}, err
 	}
-	defer cursor.Close()
-	return domain.Summarize(date, orders), nil
+	return summary, nil
 }
