@@ -138,7 +138,6 @@ func copyAsset(asset domain.Asset) domain.Asset {
 }
 
 func copyOrder(order domain.WorkOrder) domain.WorkOrder {
-	order.Labels = append([]string(nil), order.Labels...)
 	if order.ClosedAt != nil {
 		closedAt := *order.ClosedAt
 		order.ClosedAt = &closedAt

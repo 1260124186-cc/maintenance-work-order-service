@@ -25,7 +25,7 @@ func NewWorkOrder(id string, input CreateWorkOrderInput, createdAt time.Time) (W
 		AssetID:   input.AssetID,
 		Title:     strings.TrimSpace(input.Title),
 		Priority:  input.Priority,
-		Labels:    append([]string(nil), input.Labels...),
+		Labels:    input.Labels,
 		Status:    StatusOpen,
 		CreatedAt: createdAt.UTC(),
 	}, nil
