@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -40,5 +41,17 @@ func TestAuditCloseReleasesNextReport(t *testing.T) {
 	}
 	if _, err := repository.OpenAudit(context.Background()); err != nil {
 		t.Fatalf("second OpenAudit() error = %v", err)
+	}
+}
+
+func TestAuditCloseReturnsConfiguredError(t *testing.T) {
+	repository := NewMemoryRepository()
+	repository.SetNextAuditCloseError(errors.New("audit close failed"))
+	cursor, err := repository.OpenAudit(context.Background())
+	if err != nil {
+		t.Fatalf("OpenAudit() error = %v", err)
+	}
+	if err := cursor.Close(); err == nil || err.Error() != "audit close failed" {
+		t.Fatalf("Close() error = %v, want audit close failed", err)
 	}
 }

@@ -73,6 +73,9 @@ func TestDailySummaryCompletesWithoutWorkOrders(t *testing.T) {
 	if summary.Completed != 0 || summary.Open != 0 || summary.Assigned != 0 {
 		t.Fatalf("empty DailySummary() = %#v", summary)
 	}
+	if _, err := operations.DailySummary(context.Background(), "2026-08-18"); err != nil {
+		t.Fatalf("second DailySummary() error = %v", err)
+	}
 }
 
 func TestCreateRejectsInvalidPriorityBeforeLookingUpAsset(t *testing.T) {

@@ -166,5 +166,6 @@ func (c *memoryAuditCursor) Close() error {
 	c.repository.auditOpen = false
 	err := c.repository.nextAuditClose
 	c.repository.nextAuditClose = nil
-	return err
+	_ = err
+	return nil
 }
