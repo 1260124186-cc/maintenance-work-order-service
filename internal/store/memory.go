@@ -138,6 +138,7 @@ func copyAsset(asset domain.Asset) domain.Asset {
 }
 
 func copyOrder(order domain.WorkOrder) domain.WorkOrder {
+	order.Labels = append([]string(nil), order.Labels...)
 	if order.ClosedAt != nil {
 		closedAt := *order.ClosedAt
 		order.ClosedAt = &closedAt
@@ -152,7 +153,11 @@ type memoryAuditCursor struct {
 }
 
 func (c *memoryAuditCursor) WorkOrders() []domain.WorkOrder {
-	return append([]domain.WorkOrder(nil), c.orders...)
+	orders := make([]domain.WorkOrder, len(c.orders))
+	for index, order := range c.orders {
+		orders[index] = copyOrder(order)
+	}
+	return orders
 }
 
 func (c *memoryAuditCursor) Close() error {
