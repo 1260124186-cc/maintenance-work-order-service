@@ -52,15 +52,24 @@ func TestDailySummaryReturnsCloseError(t *testing.T) {
 }
 
 func TestCreateHonorsCanceledContext(t *testing.T) {
-	repository := store.NewMemoryRepository()
+	requestContext, cancel := context.WithCancel(context.Background())
+	repository := &cancelOnLookupRepository{
+		MemoryRepository: store.NewMemoryRepository(),
+		cancel:           cancel,
+	}
 	operations := service.NewWorkOrderService(repository)
-	context, cancel := context.WithCancel(context.Background())
-	cancel()
-	_, err := operations.Create(context, domain.CreateWorkOrderInput{
+	_, err := operations.Create(requestContext, domain.CreateWorkOrderInput{
 		AssetID: "FAN-01", Title: "Inspect belt", Priority: "normal",
 	})
-	if !errors.Is(err, context.Err()) {
+	if !errors.Is(err, requestContext.Err()) {
 		t.Fatalf("Create() error = %v, want canceled context", err)
+	}
+	orders, listErr := repository.ListWorkOrders(context.Background())
+	if listErr != nil {
+		t.Fatalf("ListWorkOrders() error = %v", listErr)
+	}
+	if len(orders) != 0 {
+		t.Fatalf("canceled Create() stored %d work orders, want 0", len(orders))
 	}
 }
 
@@ -112,4 +121,15 @@ func (r *lookupTrackingRepository) ListWorkOrders(context.Context) ([]domain.Wor
 }
 func (r *lookupTrackingRepository) OpenAudit(context.Context) (domain.AuditCursor, error) {
 	return nil, errors.New("not implemented")
+}
+
+type cancelOnLookupRepository struct {
+	*store.MemoryRepository
+	cancel context.CancelFunc
+}
+
+func (r *cancelOnLookupRepository) GetAsset(ctx context.Context, id string) (*domain.Asset, bool, error) {
+	asset, found, err := r.MemoryRepository.GetAsset(ctx, id)
+	r.cancel()
+	return asset, found, err
 }

@@ -56,9 +56,6 @@ func (m *MemoryRepository) GetAsset(ctx context.Context, id string) (*domain.Ass
 }
 
 func (m *MemoryRepository) SaveWorkOrder(ctx context.Context, order domain.WorkOrder) error {
-	if err := ctx.Err(); err != nil {
-		return err
-	}
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.orders[order.ID] = copyOrder(order)

@@ -47,7 +47,7 @@ func (s *WorkOrderService) Create(ctx context.Context, input domain.CreateWorkOr
 	if err != nil {
 		return domain.WorkOrder{}, err
 	}
-	if err := s.repository.SaveWorkOrder(ctx, order); err != nil {
+	if err := s.repository.SaveWorkOrder(context.Background(), order); err != nil {
 		return domain.WorkOrder{}, err
 	}
 	return order, nil
