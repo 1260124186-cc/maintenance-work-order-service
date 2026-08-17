@@ -42,3 +42,14 @@ func TestAuditCloseReleasesNextReport(t *testing.T) {
 		t.Fatalf("second OpenAudit() error = %v", err)
 	}
 }
+
+func TestMissingAssetIsNotReportedAsFound(t *testing.T) {
+	repository := NewMemoryRepository()
+	asset, found, err := repository.GetAsset(context.Background(), "MISSING")
+	if err != nil {
+		t.Fatalf("GetAsset() error = %v", err)
+	}
+	if asset != nil || found {
+		t.Fatalf("GetAsset() = (%v, %v), want (nil, false)", asset, found)
+	}
+}

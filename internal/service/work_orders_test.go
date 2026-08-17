@@ -41,6 +41,16 @@ func TestCreateRejectsInactiveAsset(t *testing.T) {
 	}
 }
 
+func TestCreateRejectsNilAssetFromRepository(t *testing.T) {
+	operations := service.NewWorkOrderService(&nilAssetRepository{})
+	_, err := operations.Create(context.Background(), domain.CreateWorkOrderInput{
+		AssetID: "FAN-01", Title: "Inspect belt", Priority: "normal",
+	})
+	if !errors.Is(err, domain.ErrAssetNotFound) {
+		t.Fatalf("Create() error = %v, want missing asset error", err)
+	}
+}
+
 func TestDailySummaryReturnsCloseError(t *testing.T) {
 	repository := store.NewMemoryRepository()
 	repository.SetNextAuditCloseError(errors.New("audit close failed"))
@@ -112,4 +122,12 @@ func (r *lookupTrackingRepository) ListWorkOrders(context.Context) ([]domain.Wor
 }
 func (r *lookupTrackingRepository) OpenAudit(context.Context) (domain.AuditCursor, error) {
 	return nil, errors.New("not implemented")
+}
+
+type nilAssetRepository struct {
+	lookupTrackingRepository
+}
+
+func (nilAssetRepository) GetAsset(context.Context, string) (*domain.Asset, bool, error) {
+	return nil, true, nil
 }
