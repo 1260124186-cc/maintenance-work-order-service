@@ -31,12 +31,9 @@ func (s *WorkOrderService) Create(ctx context.Context, input domain.CreateWorkOr
 		return domain.WorkOrder{}, err
 	}
 
-	asset, found, err := s.repository.GetAsset(ctx, input.AssetID)
+	asset, err := s.lookupCreateAsset(ctx, input.AssetID)
 	if err != nil {
 		return domain.WorkOrder{}, err
-	}
-	if !found || asset == nil {
-		return domain.WorkOrder{}, domain.ErrAssetNotFound
 	}
 	if !asset.Active {
 		return domain.WorkOrder{}, domain.ErrAssetUnavailable
@@ -51,6 +48,17 @@ func (s *WorkOrderService) Create(ctx context.Context, input domain.CreateWorkOr
 		return domain.WorkOrder{}, err
 	}
 	return order, nil
+}
+
+func (s *WorkOrderService) lookupCreateAsset(ctx context.Context, assetID string) (*domain.Asset, error) {
+	asset, found, err := s.repository.GetAsset(ctx, assetID)
+	if err != nil {
+		return nil, err
+	}
+	if !found || asset == nil {
+		return nil, domain.ErrAssetNotFound
+	}
+	return asset, nil
 }
 
 func (s *WorkOrderService) Assign(ctx context.Context, id, technician string) (domain.WorkOrder, error) {
